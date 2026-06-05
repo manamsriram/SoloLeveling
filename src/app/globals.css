@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --void: #0a0a0a;
+  --surface-1: #0f0f0f;
+  --surface-2: #111111;
+  --surface-3: #151515;
+  --gold: #f5c842;
+  --crimson: #ff3333;
+  --text: #cccccc;
+  --text-dim: #666666;
+  --radius-card: 6px;
+  --radius-inner: 4px;
+}
+
+body {
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--font-geist-sans), sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+* { box-sizing: border-box; }
