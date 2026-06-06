@@ -10,7 +10,7 @@ export class SoloLevelingDB extends Dexie {
   constructor() {
     super('SoloLevelingDB')
     this.version(1).stores({
-      goals: 'id, active, stat',
+      goals: 'id, stat',
       completions: 'id, goalId, date, [goalId+date]',
       profile: 'id',
       perks: 'id, levelRequired, unlocked',
