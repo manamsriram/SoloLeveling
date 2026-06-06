@@ -36,7 +36,7 @@ export function isStreakAlive(completedDates: string[], asOf?: string): boolean 
 
 export function getGoalStreak(completedDates: string[], referenceDate: string): number {
   if (completedDates.length === 0) return 0
-  const unique = [...new Set(completedDates)].sort().reverse()
+  const unique = Array.from(new Set(completedDates)).sort().reverse()
   const yStr = getYesterday(referenceDate)
   const anchor = unique[0]
   if (anchor !== referenceDate && anchor !== yStr) return 0
@@ -46,7 +46,7 @@ export function getGoalStreak(completedDates: string[], referenceDate: string): 
 export function getGlobalStreak(completedDays: string[], asOf?: string): number {
   if (completedDays.length === 0) return 0
   const ref = asOf ?? toDateStr(new Date())
-  const unique = [...new Set(completedDays)].sort().reverse()
+  const unique = Array.from(new Set(completedDays)).sort().reverse()
   const anchor = unique[0]
   if (anchor !== ref && anchor !== getYesterday(ref)) return 0
   return countConsecutiveBack(unique, anchor)
