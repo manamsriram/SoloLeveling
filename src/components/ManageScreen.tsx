@@ -3,6 +3,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { db } from '@/lib/db'
+import { fsSetGoal, fsDeleteGoal, fsSetPerk, fsDeletePerk } from '@/lib/sync'
 import type { Goal, Perk, Stat } from '@/lib/types'
 import { nanoid } from 'nanoid'
 
@@ -23,30 +24,38 @@ export default function ManageScreen() {
     const name = goalName.trim()
     const xp = parseInt(goalXP, 10)
     if (!name || isNaN(xp) || xp < 1) return
-    await db.goals.add({ id: nanoid(), name, xpValue: xp, stat: goalStat, createdAt: new Date().toISOString(), active: true })
+    const goal: Goal = { id: nanoid(), name, xpValue: xp, stat: goalStat, createdAt: new Date().toISOString(), active: true }
+    await db.goals.add(goal)
+    fsSetGoal(goal).catch(console.error)
     setGoalName('')
     setGoalXP('50')
   }
 
   const toggleGoalActive = async (goal: Goal) => {
-    await db.goals.update(goal.id, { active: !goal.active })
+    const updated: Goal = { ...goal, active: !goal.active }
+    await db.goals.put(updated)
+    fsSetGoal(updated).catch(console.error)
   }
 
   const deleteGoal = async (id: string) => {
     await db.goals.delete(id)
+    fsDeleteGoal(id).catch(console.error)
   }
 
   const addPerk = async () => {
     const level = parseInt(perkLevel, 10)
     const desc = perkDesc.trim()
     if (isNaN(level) || level < 1 || !desc) return
-    await db.perks.add({ id: nanoid(), levelRequired: level, description: desc, unlocked: false })
+    const perk: Perk = { id: nanoid(), levelRequired: level, description: desc, unlocked: false }
+    await db.perks.add(perk)
+    fsSetPerk(perk).catch(console.error)
     setPerkLevel('')
     setPerkDesc('')
   }
 
   const deletePerk = async (id: string) => {
     await db.perks.delete(id)
+    fsDeletePerk(id).catch(console.error)
   }
 
   const inputStyle: React.CSSProperties = {

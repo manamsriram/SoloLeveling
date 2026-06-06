@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react'
 import { db, getOrCreateProfile } from '@/lib/db'
 import { getLevel, getLevelProgress, getRank, xpThreshold } from '@/lib/xp'
 import { getGlobalStreak } from '@/lib/streak'
-import type { Goal, Completion } from '@/lib/types'
+import { fsSetCompletion, fsDeleteCompletion, fsSetProfile } from '@/lib/sync'
+import type { Goal, Completion, Profile } from '@/lib/types'
 import { nanoid } from 'nanoid'
 
 function toDateStr(d: Date): string {
@@ -58,21 +59,30 @@ export default function TodayScreen() {
     const existing = completions.find((c: Completion) => c.goalId === goal.id)
     if (existing) {
       await db.completions.delete(existing.id)
-      await db.profile.update('local', {
+      fsDeleteCompletion(existing.id).catch(console.error)
+      const updatedProfile: Profile = {
+        ...profile,
         totalXP: Math.max(0, profile.totalXP - goal.xpValue),
-      })
+        level: getLevel(Math.max(0, profile.totalXP - goal.xpValue)),
+      }
+      await db.profile.put(updatedProfile)
+      fsSetProfile(updatedProfile).catch(console.error)
     } else {
       const prevLevel = level
       const newXP = profile.totalXP + goal.xpValue
       const newLevel = getLevel(newXP)
       const now = new Date().toISOString()
-      await db.completions.add({ id: nanoid(), goalId: goal.id, date: today, completedAt: now })
-      const statUpdate = { [`stats.${goal.stat}`]: (profile.stats[goal.stat] ?? 0) + 1 }
-      await db.profile.update('local', {
+      const completion = { id: nanoid(), goalId: goal.id, date: today, completedAt: now }
+      await db.completions.add(completion)
+      fsSetCompletion(completion).catch(console.error)
+      const updatedProfile: Profile = {
+        ...profile,
         totalXP: newXP,
         level: newLevel,
-        ...statUpdate,
-      })
+        stats: { ...profile.stats, [goal.stat]: (profile.stats[goal.stat] ?? 0) + 1 },
+      }
+      await db.profile.put(updatedProfile)
+      fsSetProfile(updatedProfile).catch(console.error)
       if (newLevel > prevLevel) {
         setLevelUpAnim(true)
         setTimeout(() => setLevelUpAnim(false), 2000)

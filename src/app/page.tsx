@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { signInSilently } from '@/lib/firebase'
+import { startSync } from '@/lib/sync'
 import TodayScreen from '@/components/TodayScreen'
 import ProfileScreen from '@/components/ProfileScreen'
 import HistoryScreen from '@/components/HistoryScreen'
@@ -17,6 +19,14 @@ const NAV_ITEMS: { id: Tab; label: string; icon: string }[] = [
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('today')
+
+  useEffect(() => {
+    let unsub: (() => void) | undefined
+    signInSilently()
+      .then(() => { unsub = startSync() })
+      .catch(console.error)
+    return () => { unsub?.() }
+  }, [])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
